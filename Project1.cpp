@@ -67,7 +67,7 @@ int main () {
             //rotate_piece_right(pieces, 0);
             //rotate_piece_left(pieces, 0);
             //print_matrix_pieces(pieces);
-            solve_puzzle(pieces, board, 0, 0);
+            solve_puzzle(pieces, board, 1, 0);
             print_matrix_pieces(pieces);
             print_matrix_pieces(board);
 
@@ -176,7 +176,7 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y){
     vector<int> list_of_pieces; // list containing the indexes of the pieces being used on the board
 
 
-    print_matrix_pieces(board);
+    //print_matrix_pieces(board);
 
     board[0] = pieces[0];
     list_of_pieces.push_back(0);
@@ -184,8 +184,10 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y){
     int piece_counter = 1;
 
     while (piece_counter < num_of_pieces) {
+        //cout << "x = " << x << endl;
+        //cout << "y = " << y << endl;
         cout << "while" << endl;
-        for (int i = 0; i < num_of_pieces - piece_counter; i++) {
+        for (int i = 1; i < num_of_pieces - piece_counter; i++) {
             cout << "for1" << endl;
             for (int r = 0; r < 4; r++) {
                 cout << "for2" << endl;
@@ -242,9 +244,26 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y){
                     }
                 }
             }
+            cout << "before rotate" << endl;
             rotate_piece_right(pieces, piece_counter);
+            cout << "after rotate" << endl;
         }
         cout << "I need to go back" << endl;
+        //piece_counter--;
+        if (x == 0) {
+            if (y == 0) {
+                cout << "No solution" << endl;
+            }
+            else {
+                x = 0;
+                y--;
+                piece_counter--;
+            }
+        }
+        else {
+            x--;
+            piece_counter--;
+        }
     }
 
     /*for (int r = 0; r < board_size_row; r++) {
