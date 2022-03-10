@@ -91,11 +91,24 @@ void print_matrix_pieces(puzzle_pieces& pieces) {
 }
 
 void print_matrix_board(puzzle_board& board, int rows, int cols) {
-    for (int r = 0; r < rows; r++) {
-        for (int c =0; c < cols; c++) {
+    /*for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < cols; c++) {
             cout << board[r][c];
             if (c != cols -1)
                 cout << " ";
+        }
+        cout << endl;
+    }*/
+
+    cout << "BOARD:" << endl;
+    for (int r = 0; r < rows; r++) {
+        for (int c1 = 0; c1 < cols; c1++) {
+            cout << board[(r * cols) + c1][0] << " ";
+            cout << board[(r * cols) + c1][1] << "  ";
+        }
+        for (int c2 = 0; c2 < cols; c2++) {
+            cout << board[(r * cols) + c2][3] << " ";
+            cout << board[(r * cols) + c2][2] << "  ";
         }
         cout << endl;
     }
@@ -193,7 +206,7 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y){
                 cout << "for2" << endl;
                 auto aux_find = find(list_of_pieces.begin(), list_of_pieces.end(), i);
 
-                if (aux_find != list_of_pieces.end()) { //number not found
+                if (aux_find == list_of_pieces.end()) { //number not found
                     //y = (piece_counter % board_size_row);
                     //x = piece_counter - (y * board_size_col);
                     cout << "x = " << x << endl;
@@ -212,10 +225,12 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y){
                                         return;
                                     }
                                     else{ // last of line but not last line
+                                        print_matrix_board(board, board_size_row, board_size_col);
                                         solve_puzzle(pieces, board, 0, y+1);
                                     }
                                 }
                                 else { // not the end of line
+                                    print_matrix_board(board, board_size_row, board_size_col);
                                     solve_puzzle(pieces, board, x+1, y);
                                 }
                             }
@@ -227,9 +242,11 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y){
                             list_of_pieces.push_back(piece_counter);
                             piece_counter++;
                             if (x == board_size_col - 1) { // last of the first line
+                                print_matrix_board(board, board_size_row, board_size_col);
                                 solve_puzzle(pieces, board, 0, y+1);
                             }
                             else { // middle of the first line
+                                print_matrix_board(board, board_size_row, board_size_col);
                                 solve_puzzle(pieces, board, x+1, y);
                             }
                         }
@@ -239,9 +256,13 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y){
                             board[piece_counter] = pieces[piece_counter];
                             list_of_pieces.push_back(piece_counter);
                             piece_counter++;
+                            print_matrix_board(board, board_size_row, board_size_col);
                             solve_puzzle(pieces, board, x+1, y);
                         }
                     }
+                }
+                else {
+                    cout << "piece already used" << endl;
                 }
             }
             cout << "before rotate" << endl;
