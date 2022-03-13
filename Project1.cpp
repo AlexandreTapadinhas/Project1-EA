@@ -1,6 +1,8 @@
 /*
 Rui Alexandre Tapadinhas - 2018283200
-Mooshak - 
+David Marcelino Mendes Palaio - 2018283864
+
+Mooshak - sub 857 (15 pts - wrong answer)
 */
 /*
 g++ -std=c++17 -Wall -Wextra -O2 Project1.cpp -lm
