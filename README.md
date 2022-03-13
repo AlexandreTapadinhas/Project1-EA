@@ -9,4 +9,4 @@ Puzzle solver
 - [ ] Use static table instead of matrices using vectors
 - [ ] Implement hash table for indexing sides
 
-## Mooshak points: 0
+## Mooshak points: 15
