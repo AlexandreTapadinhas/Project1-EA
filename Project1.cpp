@@ -28,8 +28,8 @@ void print_matrix_pieces(puzzle_pieces& pieces);
 void print_matrix_board(puzzle_board& board, int rows, int cols);
 void rotate_piece_right(puzzle_board& board, int piece_index);
 void rotate_piece_left(puzzle_board& board, int piece_index);
-bool check_pieces(puzzle_board& board, puzzle_pieces& pieces, int piece1_board_coords[2], int piece2_board_coods[2], int side);
-void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y, int size_row, int size_col);
+bool check_pieces(puzzle_board& board, puzzle_pieces& pieces, int ind_piece_to_check, int piece1_board_coords[2], int piece2_board_coods[2], int side);
+void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter, vector<int>& list_of_pieces, int x, int y, int size_row, int size_col);
 
 
 int main () {
@@ -48,6 +48,10 @@ int main () {
 
             puzzle_pieces pieces (n, vector<int>(4)); //matrix that stores a list of pieces in order of reading
             puzzle_board board (n, vector<int>(4)); //starts empty, pieces get copied into this list as its being solved
+            vector<int> list_of_pieces; // list containing the indexes of the pieces being used on the board
+            int piece_counter = 1;
+            list_of_pieces.push_back(0);
+
 
             for (int k = 0; k < n; k++) {
                 cin >> p1 >> p2 >> p3 >> p4;
@@ -59,14 +63,14 @@ int main () {
 
             board[0] = pieces[0];
 
-            cout << "TESTCASE " << i + 1 << endl << endl;
+            //cout << "TESTCASE " << i + 1 << endl << endl;
             //print_matrix_pieces(pieces);
             //print_matrix_pieces(board);
-            if (c > 1) {
-                solve_puzzle(pieces, board, 1, 0, r, c);
+            if (c > 1) { // the board has more than 1 col in size
+                solve_puzzle(pieces, board, piece_counter, list_of_pieces, 1, 0, r, c);
             }
             else { // the board only has 1 col of size
-                solve_puzzle(pieces, board, 0, 1, r, c);
+                solve_puzzle(pieces, board, piece_counter, list_of_pieces, 0, 1, r, c);
             }
             //solve_puzzle(pieces, board, 1, 0, r, c);
             //print_matrix_pieces(pieces);
@@ -111,6 +115,9 @@ void print_matrix_board(puzzle_board& board, int rows, int cols) {
             }
         }
         cout << endl;
+        if (r != rows - 1) {
+            cout << endl;
+        }
     }
 }
 
@@ -134,7 +141,7 @@ void rotate_piece_left(puzzle_board& board, int piece_index) {
     // << pieces[piece_index][0] << " " << pieces[piece_index][1] << " " << pieces[piece_index][2] << " " << pieces[piece_index][3] << "\n";
 }
 
-bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int cols, int x_pos, int y_pos, int direction) {
+bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int ind_piece_to_check, int cols, int x_pos, int y_pos, int direction) {
     /*
     DIRECTION:
         LEFT -> 0 
@@ -151,25 +158,26 @@ bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int cols, int x_p
             2
     */
     
+    //int piece1 = (y_pos * cols) + x_pos;
     int piece1 = (y_pos * cols) + x_pos;
-    int piece2;
-    //cout << "piece1[" << piece1 << "] = " << pieces[piece1][0] << " "  << pieces[piece1][1] << " " << pieces[piece1][2] << " " << pieces[piece1][3] << endl;
+    int piece2;// = ind_piece_to_check;
+    //cout << "pieces[" << ind_piece_to_check << "] = " << pieces[ind_piece_to_check][0] << " "  << pieces[ind_piece_to_check][1] << " " << pieces[ind_piece_to_check][2] << " " << pieces[ind_piece_to_check][3] << endl;
     
     if (direction == 0) { //left
         piece2 = piece1-1; //elem on the left of the piece1
-        //cout << "piece2[" << piece2 << "] = " << pieces[piece2][0] << " "  << pieces[piece2][1] << " " << pieces[piece2][2] << " " << pieces[piece2][3] << endl;
+        //cout << "board[" << piece2 << "] = " << board[piece2][0] << " "  << board[piece2][1] << " " << board[piece2][2] << " " << board[piece2][3] << endl;
 
-        if (pieces[piece1][0] == board[piece2][1] && pieces[piece1][3] == board[piece2][2]) {
-            //cout << "TRUE" << endl;
+        if (pieces[ind_piece_to_check][0] == board[piece2][1] && pieces[ind_piece_to_check][3] == board[piece2][2]) {
+            //cout << "TRUE LEFT" << endl;
             return true;
         }
     }
     else if (direction == 1) { //up
         piece2 = piece1 - cols;  //elem from the line above
-        //cout << "piece2[" << piece2 << "] = " << pieces[piece2][0] << " "  << pieces[piece2][1] << " " << pieces[piece2][2] << " " << pieces[piece2][3] << endl;
+        //cout << "board[" << piece2 << "] = " << board[piece2][0] << " "  << board[piece2][1] << " " << board[piece2][2] << " " << board[piece2][3] << endl;
 
-        if (pieces[piece1][0] == board[piece2][3] && pieces[piece1][1] == board[piece2][2]) {
-            //cout << "TRUE" << endl;
+        if (pieces[ind_piece_to_check][0] == board[piece2][3] && pieces[ind_piece_to_check][1] == board[piece2][2]) {
+            //cout << "TRUE UP" << endl;
             return true;
         }
     }
@@ -183,7 +191,7 @@ bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int cols, int x_p
     return false;
 }
 
-void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y, int size_row, int size_col){
+void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter, vector<int>& list_of_pieces, int x, int y, int size_row, int size_col){
     // not finished
     int num_of_pieces, board_size_row, board_size_col;
     num_of_pieces = pieces.size();
@@ -192,22 +200,29 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y, int 
     //cout << "pieces: " << num_of_pieces << "\n";
     //cout << "rows: " << board_size_row << "\n";
     //cout << "cols: " << board_size_col << "\n";
-    vector<int> list_of_pieces; // list containing the indexes of the pieces being used on the board
 
 
     //print_matrix_pieces(board);
 
-    board[0] = pieces[0];
-    list_of_pieces.push_back(0);
 
-    int piece_counter = 1;
     int ind_cur_piece = y*board_size_col + x;
+
+    //cout << "piece_counter = " << piece_counter << " num_of_pieces = " << num_of_pieces << endl;
 
     while (piece_counter < num_of_pieces) {
         //cout << "x = " << x << endl;
         //cout << "y = " << y << endl;
         //cout << "while" << endl;
-        for (int i = 1; i < num_of_pieces - piece_counter; i++) {
+
+        // print list of used pieces
+        //cout << "piece_counter = " << piece_counter << endl;
+        /*cout << "List of used pieces: ";
+        for (auto i = 0; i < (int)list_of_pieces.size(); i++) {
+            cout << list_of_pieces[i] << " ";
+        }
+        cout << endl;*/
+
+        for (int i = 1; i < num_of_pieces; i++) {
             //cout << "for1" << endl;
             auto aux_find = find(list_of_pieces.begin(), list_of_pieces.end(), i);
 
@@ -216,112 +231,115 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y, int 
                     //cout << "for2" << endl;
                     //y = (piece_counter % board_size_row);
                     //x = piece_counter - (y * board_size_col);
-                    cout << "x = " << x << endl;
-                    cout << "y = " << y << endl << endl;
+                    //cout << "x = " << x << endl;
+                    //cout << "y = " << y << endl << endl;
                     //cout << "piece[" << ind_cur_piece << "] = " << pieces[ind_cur_piece][0] << " "  << pieces[ind_cur_piece][1] << " " << pieces[ind_cur_piece][2] << " " << pieces[ind_cur_piece][3] << endl;
 
                     
                     if (x > 0 && y == 0) { // first line of the board
-                        cout << "primeira linha" << endl;
-                        if (check_pieces(board, pieces, board_size_col, x, y, 0)) {
+                        //cout << "primeira linha" << endl;
+                        if (check_pieces(board, pieces, i,board_size_col, x, y, 0)) {
                             //cout << "primeira linha depois de encaixar" << endl;
-                            board[ind_cur_piece] = pieces[ind_cur_piece];
-                            list_of_pieces.push_back(ind_cur_piece);
+                            board[ind_cur_piece] = pieces[i];
+                            list_of_pieces.push_back(i);
                             piece_counter++;
                             if (x == board_size_col - 1) { // last of the first line
                                 //print_matrix_board(board, board_size_row, board_size_col);
-                                cout << "aqui2" << endl;
+                                //cout << "aqui2" << endl;
                                 if (y == board_size_row - 1){ // puzzle has only one line and this is the last piece
                                     // PUZZLE SOLVED
-                                    cout << "PUZZLE SOLVED" << endl;
+                                    //cout << "PUZZLE SOLVED" << endl;
                                     print_matrix_board(board, board_size_row, board_size_col);
                                     return;
                                 }
-                                solve_puzzle(pieces, board, 0, y+1, size_row, size_col);
+                                solve_puzzle(pieces, board, piece_counter, list_of_pieces, 0, y+1, size_row, size_col);
                                 return;
                             }
                             else { // middle of the first line
                                 //print_matrix_board(board, board_size_row, board_size_col);
-                                solve_puzzle(pieces, board, x+1, y, size_row, size_col);
+                                solve_puzzle(pieces, board, piece_counter, list_of_pieces, x+1, y, size_row, size_col);
                                 return;
                             }
                         }
                     }
                     else if (x == 0 && y > 0) { // first col of each line
-                        cout << "primeira coluna" << endl;
-                        if (check_pieces(board, pieces, board_size_col, x, y, 1)) { // just checks if lines up with the piece above the current piece
+                        //cout << "primeira coluna" << endl;
+                        if (check_pieces(board, pieces, i, board_size_col, x, y, 1)) { // just checks if lines up with the piece above the current piece
                             //cout << "primeira coluna depois de encaixar" << endl;
-                            board[ind_cur_piece] = pieces[ind_cur_piece];
-                            list_of_pieces.push_back(ind_cur_piece);
+                            board[ind_cur_piece] = pieces[i];
+                            list_of_pieces.push_back(i);
                             piece_counter++;
                             if (x == board_size_col - 1) { // last of the first line
                                 //print_matrix_board(board, board_size_row, board_size_col);
-                                cout << "aqui3" << endl;
-                                solve_puzzle(pieces, board, 0, y+1, size_row, size_col);
+                                //cout << "aqui3" << endl;
+                                solve_puzzle(pieces, board, piece_counter, list_of_pieces, 0, y+1, size_row, size_col);
                                 return;
                             }
                             else { // middle of the first line
                                 //print_matrix_board(board, board_size_row, board_size_col);
-                                solve_puzzle(pieces, board, x+1, y, size_row, size_col);
+                                solve_puzzle(pieces, board, piece_counter, list_of_pieces, x+1, y, size_row, size_col);
                                 return;
                             }
                         }
                     }
                     else if (x > 0 && y > 0) { // middle of the board
-                        cout << "meio do puzzle" << endl;
-                        if (check_pieces(board, pieces, board_size_col, x, y, 0)) {
-                            if (check_pieces(board, pieces, board_size_col, x, y, 1)) {
-                                board[ind_cur_piece] = pieces[ind_cur_piece];
-                                list_of_pieces.push_back(ind_cur_piece);
+                        //cout << "meio do puzzle" << endl;
+                        if (check_pieces(board, pieces, i, board_size_col, x, y, 0)) {
+                            if (check_pieces(board, pieces, i, board_size_col, x, y, 1)) {
+                                board[ind_cur_piece] = pieces[i];
+                                list_of_pieces.push_back(i);
                                 piece_counter++;
-                                cout << "pre acabar" << endl;
+                                //cout << "pre acabar" << endl;
                                 if (x == board_size_col - 1) { // reaches the end of line
                                     if (y == board_size_row - 1) { // last piece of the board
                                         // PUZZLE SOLVED
-                                        cout << "PUZZLE SOLVED" << endl;
+                                        //cout << "PUZZLE SOLVED" << endl;
+                                        print_matrix_board(board, board_size_row, board_size_col);
                                         return;
                                     }
                                     else{ // last of line but not last line
                                         //print_matrix_board(board, board_size_row, board_size_col);
-                                        cout << "aqui" << endl;
-                                        solve_puzzle(pieces, board, 0, y+1, size_row, size_col);
+                                        //cout << "aqui" << endl;
+                                        solve_puzzle(pieces, board, piece_counter, list_of_pieces, 0, y+1, size_row, size_col);
                                         return;
                                     }
                                 }
                                 else { // not the end of line
                                     //print_matrix_board(board, board_size_row, board_size_col);
-                                    solve_puzzle(pieces, board, x+1, y, size_row, size_col);
+                                    solve_puzzle(pieces, board, piece_counter, list_of_pieces, x+1, y, size_row, size_col);
                                     return;
                                 }
                             }
                         }
                     }
                     //cout << "before rotate" << endl;
-                    rotate_piece_right(pieces, ind_cur_piece);
+                    rotate_piece_right(pieces, i);
                     //cout << "after rotate" << endl;
                 }
             }
             else {
-                cout << "piece already used" << endl;
+                //cout << "piece " << i << " already used" << endl;
             }
         }
         //piece_counter--;
         if (x == 0) {
             if (y == 0) {
-                cout << "No solution" << endl;
+                cout << "impossible puzzle!" << endl;
                 return;
             }
             else {
-                x = 0;
+                x = size_col - 1;
                 y--;
                 piece_counter--;
+                //list_of_pieces.pop_back();
             }
         }
         else {
             x--;
             piece_counter--;
+            //list_of_pieces.pop_back();
         }
-        cout << "I need to go back" << endl;
+        //cout << "I need to go back" << endl;
     }
 
     /*for (int r = 0; r < board_size_row; r++) {
@@ -329,7 +347,7 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int x, int y, int 
             
         }
     }*/
-    cout << "\nBOARD\n";
-    print_matrix_board(board, board_size_row, board_size_col);
+    //cout << "\nBOARD\n";
+    //print_matrix_board(board, board_size_row, board_size_col);
 }
 
