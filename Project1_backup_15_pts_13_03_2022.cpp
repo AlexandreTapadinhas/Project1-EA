@@ -199,7 +199,6 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter,
     num_of_pieces = pieces.size();
     board_size_row = size_row;
     board_size_col = size_col;
-    bool backing_up = false;
     //cout << "pieces: " << num_of_pieces << "\n";
     //cout << "rows: " << board_size_row << "\n";
     //cout << "cols: " << board_size_col << "\n";
@@ -225,14 +224,12 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter,
         }
         cout << endl;*/
 
-        //cout << "DEBUG" << endl;
-        //print_matrix_board(board, board_size_row, board_size_col);
-
-        for (int i = 1; i < num_of_pieces; i++) { // i is index to apply to pieces list
-            //cout << "for index pieces " << i << endl;
+        for (int i = 1; i < num_of_pieces; i++) {
+            //cout << "for1" << endl;
             auto aux_find = find(list_of_pieces.begin(), list_of_pieces.end(), i);
+
             if (aux_find == list_of_pieces.end()) { //number not found
-                for (int r = 0; r < 4; r++) { // test same piece with all rotations possible
+                for (int r = 0; r < 4; r++) { // TODO:this for cicle can switch place with the next if statement
                     //cout << "for2" << endl;
                     //y = (piece_counter % board_size_row);
                     //x = piece_counter - (y * board_size_col);
@@ -248,11 +245,6 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter,
                             board[ind_cur_piece] = pieces[i];
                             list_of_pieces.push_back(i);
                             piece_counter++;
-                            if (backing_up) {
-                                list_of_pieces.pop_back(); // marosca maxima
-                                backing_up = false;
-                                //cout << endl << endl << endl << endl << endl << endl;
-                            }   
                             if (x == board_size_col - 1) { // last of the first line
                                 //print_matrix_board(board, board_size_row, board_size_col);
                                 //cout << "aqui2" << endl;
@@ -279,21 +271,9 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter,
                             board[ind_cur_piece] = pieces[i];
                             list_of_pieces.push_back(i);
                             piece_counter++;
-                            if (backing_up) {
-                                list_of_pieces.pop_back(); // marosca maxima
-                                backing_up = false;
-                                //cout << endl << endl << endl << endl << endl << endl;
-                            }       
                             if (x == board_size_col - 1) { // last of the first line
                                 //print_matrix_board(board, board_size_row, board_size_col);
                                 //cout << "aqui3" << endl;
-                                if (y == board_size_row - 1) { // end of board (only 1 col and 2 rows)
-                                    // PUZZLE SOLVED
-                                    //cout << "PUZZLE SOLVED" << endl;
-                                    print_matrix_board(board, board_size_row, board_size_col);
-                                    return;
-                                }
-                                // continue to next (end of line reached)
                                 solve_puzzle(pieces, board, piece_counter, list_of_pieces, 0, y+1, size_row, size_col);
                                 return;
                             }
@@ -312,11 +292,6 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter,
                                 list_of_pieces.push_back(i);
                                 piece_counter++;
                                 //cout << "pre acabar" << endl;
-                                if (backing_up) {
-                                    list_of_pieces.pop_back(); // marosca maxima
-                                    backing_up = false;
-                                    //cout << endl << endl << endl << endl << endl << endl;
-                                }
                                 if (x == board_size_col - 1) { // reaches the end of line
                                     if (y == board_size_row - 1) { // last piece of the board
                                         // PUZZLE SOLVED
@@ -349,8 +324,6 @@ void solve_puzzle(puzzle_pieces& pieces, puzzle_board& board, int piece_counter,
             }
         }
         //piece_counter--;
-        //cout << "backing up" << endl;
-        backing_up = true;
         if (x == 0) {
             if (y == 0) {
                 cout << "impossible puzzle!" << endl;
