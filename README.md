@@ -5,9 +5,11 @@ Puzzle solver
 - [X] Input (Reading into matrix size(number of pieces, 4 (corner colors(int)) ).)
 - [X] Rotate funcions (right and left implemented seperatly to improve performance)
 - [X] Check sides
-- [ ] Solve
-- [ ] Use static table instead of matrices using vectors
+- [X] Solve
+- [X] Switch list_of_pieces from int vector to bool array
+- [ ] Check possibility to solve by counting the each color( counter%4 == 0, only 4 (edges of the board) can be different from the condition)
 - [ ] Implement hash table for indexing sides
-- [ ] Switch list_of_pieces from int vector to bool array
+- [ ] Use static table instead of matrices using vectors
 
-## Mooshak points: 15
+
+## Mooshak points: 70
