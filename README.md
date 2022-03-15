@@ -7,9 +7,9 @@ Puzzle solver
 - [X] Check sides
 - [X] Solve
 - [X] Switch list_of_pieces from int vector to bool array
-- [ ] Check possibility to solve by counting the each color( counter%4 == 0, only 4 (edges of the board) can be different from the condition)
+- [X] Check possibility to solve by counting the each color( counter%2 == 0, only 4 (edges of the board) can be different from the condition)
 - [ ] Implement hash table for indexing sides
-- [ ] Use static table instead of matrices using vectors
+- [ ] Use static table instead of matrices using vectors (not worthy probably)
 
 
-## Mooshak points: 70
+## Mooshak points: 130
