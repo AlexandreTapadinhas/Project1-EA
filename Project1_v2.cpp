@@ -12,6 +12,8 @@ g++ -std=c++17 -Wall -Wextra -O2 Project1_v2.cpp -lm
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <unordered_map>
+
 
 using namespace std;
 
@@ -36,7 +38,7 @@ void print_matrix_board(puzzle_board& board, int rows, int cols);
 void rotate_piece_right(puzzle_board& board, int piece_index);
 void rotate_piece_left(puzzle_board& board, int piece_index);
 bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int ind_piece_to_check, int size_cols, int x_pos, int y_pos, int direction);
-bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used, int x, int y, int size_row, int size_col);
+bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used, int x, int y, int size_row, int size_col, unordered_map<int, vector<int>> sides);
 
 
 int main () {
@@ -58,6 +60,7 @@ int main () {
             //vector<int> list_of_pieces; // list containing the indexes of the pieces being used on the board
             bool pieces_used[N_MAX]{false};
             int color_counter[COLOR_MAX]{0};
+            unordered_map<int, vector<int>> sides; // example sides[int(color 1 * 1000 + color 2)] = {piece_index, rotation} : sides[1002] = {0, 0}
 
 
             for (int k = 0; k < n; k++) {
@@ -71,8 +74,31 @@ int main () {
                 color_counter[p2]++;
                 color_counter[p3]++;
                 color_counter[p4]++;
+                // add sides to map
+                if (k > 0) {
+                    //vector<int> aux;
+                    //for (int r = 0; r < 4; r++) {
+                        //aux.push_back(k);
+                        //aux.push_back(r);
+                        sides[pieces[k][0]*1000+pieces[k][1]].push_back(k);
+                        sides[pieces[k][1]*1000+pieces[k][2]].push_back(k);
+                        sides[pieces[k][2]*1000+pieces[k][3]].push_back(k);
+                        sides[pieces[k][3]*1000+pieces[k][0]].push_back(k);
+                        //rotate_piece_right(pieces, k);
+                        //aux.clear();
+                    //}
+                }
             }
-
+            // print unordered map
+            for (const pair<int, vector<int>>& tuple : sides) {
+                cout << "side: " << tuple.first << "\t";
+                for (int p = 0; p < (int)tuple.second.size(); p++) {
+                    cout << "piece: " << tuple.second[p] << endl;// "\t" << "rotation: " << tuple.second[p][1] << endl;
+                    if (p != (int)tuple.second.size()-1)
+                        cout << "\t\t";
+                }
+            }
+            // count colors
             int counter_odd_color = 0;
             for (int color = 0; color < COLOR_MAX; color++) {
                 if (color_counter[color] % 2 != 0) {
@@ -89,7 +115,7 @@ int main () {
                 //cout << "TESTCASE " << i + 1 << endl << endl;
 
                 if (c > 1) { // the board has more than 1 col in size
-                    if (solve_puzzle(board, pieces, pieces_used, 1, 0, r, c) == true) {
+                    if (solve_puzzle(board, pieces, pieces_used, 1, 0, r, c, sides) == true) {
                         //print_matrix_board(board, r, c); // already printing on solve_puzzle function
                     }
                     else {
@@ -97,7 +123,7 @@ int main () {
                     }
                 }
                 else { // the board only has 1 col of size
-                    if (solve_puzzle(board, pieces, pieces_used, 0, 1, r, c) == true) {
+                    if (solve_puzzle(board, pieces, pieces_used, 0, 1, r, c, sides) == true) {
                         //print_matrix_board(board, r, c); // already printing on solve_puzzle function
                     }
                     else {
@@ -219,10 +245,11 @@ bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int ind_piece_to_
     return false;
 }
 
-bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used, int x, int y, int size_row, int size_col) {
+bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used, int x, int y, int size_row, int size_col, unordered_map<int, vector<int>> sides)  {
     int num_of_pieces = size_col * size_row;
     //cout << "call" << endl;
     //print_matrix_board(board, size_row, size_col);
+    vector<int> cur_piece = board[(y*size_col) + x];
 
     if (y == size_row - 1 && x == size_col -1) { // last cell of board
         // check and then finish or go back
@@ -280,7 +307,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
         //cout << "false1" << endl;
         return false;
     }
-    if (y == 0) { // first line
+    if (y == 0) { // first line 
         if (x == 0) { // first cell of board
             cout << "impossible puzzle!" << endl;
             return false;
@@ -294,7 +321,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                             board[y*size_col + x] = pieces[ind_try];
                             pieces_used[ind_try] = true;
                             if (x == size_col-1) { // last col in line
-                                if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col) == false) {
+                                if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col, sides) == false) {
                                     pieces_used[ind_try] = false;
                                 }
                                 else {
@@ -302,7 +329,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                                 }
                             }
                             else { // not the last in the line
-                                if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col) == false) {
+                                if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col, sides) == false) {
                                     pieces_used[ind_try] = false;
                                 }
                                 else {
@@ -321,6 +348,15 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
     else { // y > 0
         if (x == 0) { // first col of every line
             // check only with the piece above
+            vector<int> piece_above = board[((y-1) * size_col) + x];
+            vector<int> inds_matching_side = sides[piece_above[3]*1000 + piece_above[2]];
+            cout << inds_matching_side.size() << endl;
+            for (int inds = 0; inds < (int)inds_matching_side.size(); inds++) {
+                cout << inds_matching_side[inds] << " ";
+                if (inds == (int)inds_matching_side.size() - 1) {
+                    cout << endl;
+                }
+            }
             for (int ind_try = 0; ind_try < num_of_pieces; ind_try++) {
                 if (pieces_used[ind_try] == false) {
                     for (int rot = 0; rot < 4; rot++) {
@@ -328,7 +364,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                             board[y*size_col + x] = pieces[ind_try];
                             pieces_used[ind_try] = true;
                             if (x == size_col-1) { // last col in line
-                                if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col) == false) {
+                                if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col, sides) == false) {
                                     pieces_used[ind_try] = false;
                                 }
                                 else {
@@ -336,7 +372,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                                 }
                             }
                             else {
-                                if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col) == false) {
+                                if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col, sides) == false) {
                                     pieces_used[ind_try] = false;
                                 }
                                 else {
@@ -361,7 +397,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                                 board[y * size_col + x] = pieces[ind_try];
                                 pieces_used[ind_try] = true;
                                 if (x == size_col-1) { // last col in line
-                                    if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col) == false) {
+                                    if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col, sides) == false) {
                                         pieces_used[ind_try] = false;
                                     }
                                     else {
@@ -369,7 +405,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                                     }
                                 }
                                 else {
-                                    if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col) == false) {
+                                    if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col, sides) == false) {
                                         pieces_used[ind_try] = false;
                                     }
                                     else {
