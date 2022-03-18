@@ -13,9 +13,12 @@ g++ -std=c++17 -Wall -Wextra -O2 Project1_v2.cpp -lm
 #include <string>
 #include <algorithm>
 #include <unordered_map>
+#include <chrono>
+
 
 
 using namespace std;
+using namespace std::chrono;
 
 #define N_MAX 2500
 #define R_MAX 50
@@ -37,6 +40,7 @@ void print_matrix_pieces(puzzle_pieces& pieces);
 void print_matrix_board(puzzle_board& board, int rows, int cols);
 void rotate_piece_right(puzzle_board& board, int piece_index);
 void rotate_piece_left(puzzle_board& board, int piece_index);
+vector<int> intersection(vector<int> &v1, vector<int> &v2);
 bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int ind_piece_to_check, int size_cols, int x_pos, int y_pos, int direction);
 bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used, int x, int y, int size_row, int size_col, unordered_map<int, vector<int>> sides);
 
@@ -45,6 +49,7 @@ int main () {
     //input
     std::ios_base::sync_with_stdio(0);
     std::cin.tie(0);
+    auto start = high_resolution_clock::now();
 
     while (cin >> num_testcases) {
         for (int i = 0; i < num_testcases; i++) {
@@ -90,14 +95,14 @@ int main () {
                 }
             }
             // print unordered map
-            for (const pair<int, vector<int>>& tuple : sides) {
+            /*for (const pair<int, vector<int>>& tuple : sides) {
                 cout << "side: " << tuple.first << "\t";
                 for (int p = 0; p < (int)tuple.second.size(); p++) {
                     cout << "piece: " << tuple.second[p] << endl;// "\t" << "rotation: " << tuple.second[p][1] << endl;
                     if (p != (int)tuple.second.size()-1)
                         cout << "\t\t";
                 }
-            }
+            }*/
             // count colors
             int counter_odd_color = 0;
             for (int color = 0; color < COLOR_MAX; color++) {
@@ -135,6 +140,11 @@ int main () {
             pieces.clear();
             board.clear();
         }
+        auto stop = high_resolution_clock::now(); 
+        auto duration = duration_cast<microseconds>(stop - start); 
+
+        cout << "input file time: " << duration.count() << endl; 
+
 
         // size_temp = testcase.size();
     }
@@ -195,6 +205,44 @@ void rotate_piece_left(puzzle_board& board, int piece_index) {
     // << pieces[piece_index][0] << " " << pieces[piece_index][1] << " " << pieces[piece_index][2] << " " << pieces[piece_index][3] << "\n";
 }
 
+vector<int> intersection(vector<int> &v1, vector<int> &v2){
+    vector<int> v3;
+    //auto start = high_resolution_clock::now(); 
+
+    sort(v1.begin(), v1.end());
+    // print list 1
+    /*cout << "list 1: ";
+    for (int i1 = 0; i1 < (int) v1.size(); i1++) {
+        cout << v1[i1] << " ";
+    }
+    cout << endl;*/
+
+    sort(v2.begin(), v2.end());
+
+    // print list 2
+    /*cout << "list 2: ";
+    for (int i2 = 0; i2 < (int) v2.size(); i2++) {
+        cout << v2[i2] << " ";
+    }
+    cout << endl;*/
+
+    set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), back_inserter(v3));
+
+    // print interception list
+    /*cout << "list 1 <> list 2: ";
+    for (int i3 = 0; i3 < (int) v3.size(); i3++) {
+        cout << v3[i3] << " ";
+    }
+    cout << endl;*/
+
+    /*auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+
+    cout << "intersection time: " << duration.count() << endl;*/
+
+    return v3;
+}
+
 bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int ind_piece_to_check, int size_cols, int x_pos, int y_pos, int direction) {
     /*
     DIRECTION:
@@ -246,44 +294,82 @@ bool check_pieces (puzzle_board& board, puzzle_pieces& pieces, int ind_piece_to_
 }
 
 bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used, int x, int y, int size_row, int size_col, unordered_map<int, vector<int>> sides)  {
-    int num_of_pieces = size_col * size_row;
+    //int num_of_pieces = size_col * size_row; // not used
     //cout << "call" << endl;
     //print_matrix_board(board, size_row, size_col);
-    vector<int> cur_piece = board[(y*size_col) + x];
+    //vector<int> cur_piece = board[(y*size_col) + x]; // NOT USED
 
     if (y == size_row - 1 && x == size_col -1) { // last cell of board
         // check and then finish or go back
-        for (int ind_try = 0; ind_try < num_of_pieces; ind_try++) {
-            if (pieces_used[ind_try] == false) {
+        // check with the surrounding pieces
+
+        vector<int> possible_pieces;
+
+        vector<int> piece_above; // = board[((y-1) * size_col) + x];
+        //vector<int> inds_matching_side_above = sides[piece_above[3]*1000 + piece_above[2]];
+        //cout << "above: " <<  inds_matching_side_above.size() << endl;
+
+        vector<int> piece_previous; // = board[(y * size_col) + x - 1];
+        //vector<int> inds_matching_side_previous = sides[piece_previous[1]*1000 + piece_previous[2]]; // index wrong probably
+        //cout << "previous: " << inds_matching_side_previous.size() << endl;
+
+        
+        if (size_row > 1 && size_col > 1) {
+            //cout << "size_row > 1 && size_col > 1" << endl;
+            piece_above = board[((y-1) * size_col) + x];
+            piece_previous = board[(y * size_col) + x - 1];
+            vector<int> inds_matching_side_above = sides[piece_above[3]*1000 + piece_above[2]];
+            vector<int> inds_matching_side_previous = sides[piece_previous[2]*1000 + piece_previous[1]];
+            possible_pieces = intersection(inds_matching_side_above, inds_matching_side_previous);
+        }
+        else if (size_row == 1 && size_col == 1) {
+            print_matrix_board(board, size_row, size_col);
+            //cout << "PUZZLE SOLVED" << endl;
+            return true;
+        }
+        else if (size_row == 1) {
+            piece_previous = board[(y * size_col) + x - 1];
+            vector<int> inds_matching_side_previous = sides[piece_previous[2]*1000 + piece_previous[1]];
+            possible_pieces = inds_matching_side_previous;
+        }
+        else if (size_col == 1) {
+            piece_above = board[((y-1) * size_col) + x];
+            vector<int> inds_matching_side_above = sides[piece_above[3]*1000 + piece_above[2]];
+            possible_pieces = inds_matching_side_above;
+        }
+
+        for (int ind_try = 0; ind_try < (int)possible_pieces.size(); ind_try++) {
+            if (pieces_used[possible_pieces[ind_try]] == false) {
                 //cout << "last piece pre check" << endl;
                 for (int rot = 0; rot < 4; rot++) {
                     //cout << "last piece: before checking piece" << endl;
                     if (size_row > 1 && size_col > 1) {
                         //cout << "size_row > 1 && size_col > 1" << endl;
-                        if (check_pieces(board, pieces, ind_try, size_col, x, y, 0)) {
+                        if (check_pieces(board, pieces, possible_pieces[ind_try], size_col, x, y, 0)) {
                             //cout << "check1" << endl;
-                            if (check_pieces(board, pieces, ind_try, size_col, x, y, 1)) {
+                            if (check_pieces(board, pieces, possible_pieces[ind_try], size_col, x, y, 1)) {
                                 //cout << "check2" << endl;
-                                board[(y*size_col) + x] = pieces[ind_try];
-                                pieces_used[ind_try] = true;
+                                board[(y*size_col) + x] = pieces[possible_pieces[ind_try]];
+                                pieces_used[possible_pieces[ind_try]] = true;
                                 print_matrix_board(board, size_row, size_col);
                                 //cout << "PUZZLE SOLVED" << endl;
                                 return true;
                             }
                         }
                     }
-                    else if (size_row == 1 && size_col == 1) {
+                    // ERASE: else if condition not needed, copied up (before for (ind_try))
+                    /*else if (size_row == 1 && size_col == 1) {
                         //cout << "size_row == 1 && size_col == 1" << endl;
                         print_matrix_board(board, size_row, size_col);
                         //cout << "PUZZLE SOLVED" << endl;
                         return true;
-                    }
+                    }*/
                     else if (size_row == 1) {
                         //cout << "size_row == 1" << endl;
-                        if (check_pieces(board, pieces, ind_try, size_col, x, y, 0)) {
+                        if (check_pieces(board, pieces, possible_pieces[ind_try], size_col, x, y, 0)) {
                             //cout << "check3" << endl;
-                            board[y*size_col + x] = pieces[ind_try];
-                            pieces_used[ind_try] = true;
+                            board[y*size_col + x] = pieces[possible_pieces[ind_try]];
+                            pieces_used[possible_pieces[ind_try]] = true;
                             print_matrix_board(board, size_row, size_col);
                             //cout << "PUZZLE SOLVED" << endl;
                             return true;
@@ -291,16 +377,16 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                     }
                     else if (size_col == 1) {
                         //cout << "size_col == 1" << endl;
-                        if (check_pieces(board, pieces, ind_try, size_col, x, y, 1)) {
+                        if (check_pieces(board, pieces, possible_pieces[ind_try], size_col, x, y, 1)) {
                             //cout << "check4" << endl;
-                            board[y*size_col + x] = pieces[ind_try];
-                            pieces_used[ind_try] = true;
+                            board[y*size_col + x] = pieces[possible_pieces[ind_try]];
+                            pieces_used[possible_pieces[ind_try]] = true;
                             print_matrix_board(board, size_row, size_col);
                             //cout << "PUZZLE SOLVED" << endl;
                             return true;
                         }
                     }
-                    rotate_piece_right(pieces, ind_try);
+                    rotate_piece_right(pieces, possible_pieces[ind_try]);
                 }
             }
         }
@@ -308,21 +394,26 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
         return false;
     }
     if (y == 0) { // first line 
+
+        //only where the side appears
+        vector<int> piece_previous = board[(y * size_col) + x - 1];
+        vector<int> inds_matching_side_previous = sides[piece_previous[2]*1000 + piece_previous[1]];
+
         if (x == 0) { // first cell of board
             cout << "impossible puzzle!" << endl;
             return false;
         }
         else { // x > 0
             // check only with the piece on the left
-            for (int ind_try = 0; ind_try < num_of_pieces; ind_try++) {
-                if (pieces_used[ind_try] == false) {
+            for (int ind_try = 0; ind_try < (int)inds_matching_side_previous.size(); ind_try++) {
+                if (pieces_used[inds_matching_side_previous[ind_try]] == false) {
                     for (int rot = 0; rot < 4; rot++) {
-                        if (check_pieces(board, pieces, ind_try, size_col, x, y, 0)) {
-                            board[y*size_col + x] = pieces[ind_try];
-                            pieces_used[ind_try] = true;
+                        if (check_pieces(board, pieces, inds_matching_side_previous[ind_try], size_col, x, y, 0)) {
+                            board[y*size_col + x] = pieces[inds_matching_side_previous[ind_try]];
+                            pieces_used[inds_matching_side_previous[ind_try]] = true;
                             if (x == size_col-1) { // last col in line
                                 if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col, sides) == false) {
-                                    pieces_used[ind_try] = false;
+                                    pieces_used[inds_matching_side_previous[ind_try]] = false;
                                 }
                                 else {
                                     return true;
@@ -330,14 +421,14 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                             }
                             else { // not the last in the line
                                 if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col, sides) == false) {
-                                    pieces_used[ind_try] = false;
+                                    pieces_used[inds_matching_side_previous[ind_try]] = false;
                                 }
                                 else {
                                     return true;
                                 }
                             }
                         }
-                        rotate_piece_right(pieces, ind_try);
+                        rotate_piece_right(pieces, inds_matching_side_previous[ind_try]);
                     }
                 }
             }
@@ -350,22 +441,23 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
             // check only with the piece above
             vector<int> piece_above = board[((y-1) * size_col) + x];
             vector<int> inds_matching_side = sides[piece_above[3]*1000 + piece_above[2]];
-            cout << inds_matching_side.size() << endl;
-            for (int inds = 0; inds < (int)inds_matching_side.size(); inds++) {
+            //cout << inds_matching_side.size() << endl;
+            // print list of pieces that has the side pretended
+            /*for (int inds = 0; inds < (int)inds_matching_side.size(); inds++) {
                 cout << inds_matching_side[inds] << " ";
                 if (inds == (int)inds_matching_side.size() - 1) {
                     cout << endl;
                 }
-            }
-            for (int ind_try = 0; ind_try < num_of_pieces; ind_try++) {
-                if (pieces_used[ind_try] == false) {
+            }*/
+            for (int ind_try = 0; ind_try < (int)inds_matching_side.size(); ind_try++) {
+                if (pieces_used[inds_matching_side[ind_try]] == false) {
                     for (int rot = 0; rot < 4; rot++) {
-                        if (check_pieces(board, pieces, ind_try, size_col, x, y, 1)) {
-                            board[y*size_col + x] = pieces[ind_try];
-                            pieces_used[ind_try] = true;
+                        if (check_pieces(board, pieces, inds_matching_side[ind_try], size_col, x, y, 1)) {
+                            board[y*size_col + x] = pieces[inds_matching_side[ind_try]];
+                            pieces_used[inds_matching_side[ind_try]] = true;
                             if (x == size_col-1) { // last col in line
                                 if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col, sides) == false) {
-                                    pieces_used[ind_try] = false;
+                                    pieces_used[inds_matching_side[ind_try]] = false;
                                 }
                                 else {
                                     return true;
@@ -373,14 +465,14 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                             }
                             else {
                                 if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col, sides) == false) {
-                                    pieces_used[ind_try] = false;
+                                    pieces_used[inds_matching_side[ind_try]] = false;
                                 }
                                 else {
                                     return true;
                                 }
                             }
                         }
-                        rotate_piece_right(pieces, ind_try);
+                        rotate_piece_right(pieces, inds_matching_side[ind_try]);
                     }
                 }
             }
@@ -389,16 +481,33 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
         }
         else { // x > 0
             // check with the piece above and the piece on the left
-            for (int ind_try = 0; ind_try < num_of_pieces; ind_try++) {
-                if (pieces_used[ind_try] == false) {
+            // TODO: NOT TESTED
+            vector<int> piece_above = board[((y-1) * size_col) + x];
+            vector<int> inds_matching_side_above = sides[piece_above[3]*1000 + piece_above[2]];
+            //cout << "above: " <<  inds_matching_side_above.size() << endl;
+
+            vector<int> piece_previous = board[(y * size_col) + x - 1];
+            vector<int> inds_matching_side_previous = sides[piece_previous[2]*1000 + piece_previous[1]];
+            //cout << "previous: " << inds_matching_side_previous.size() << endl;
+
+            vector<int> possible_pieces_interseption = intersection(inds_matching_side_above, inds_matching_side_previous);
+            // print list of pieces that has the side pretended
+            /*for (int inds = 0; inds < (int)inds_matching_side.size(); inds++) {
+                cout << inds_matching_side[inds] << " ";
+                if (inds == (int)inds_matching_side.size() - 1) {
+                    cout << endl;
+                }
+            }*/
+            for (int ind_try = 0; ind_try < (int) possible_pieces_interseption.size(); ind_try++) {
+                if (pieces_used[possible_pieces_interseption[ind_try]] == false) {
                     for (int rot = 0; rot < 4; rot++) {
-                        if (check_pieces(board, pieces, ind_try, size_col, x, y, 0)) {
-                            if (check_pieces(board, pieces, ind_try, size_col, x, y, 1)) {
-                                board[y * size_col + x] = pieces[ind_try];
-                                pieces_used[ind_try] = true;
+                        if (check_pieces(board, pieces, possible_pieces_interseption[ind_try], size_col, x, y, 0)) {
+                            if (check_pieces(board, pieces, possible_pieces_interseption[ind_try], size_col, x, y, 1)) {
+                                board[y * size_col + x] = pieces[possible_pieces_interseption[ind_try]];
+                                pieces_used[possible_pieces_interseption[ind_try]] = true;
                                 if (x == size_col-1) { // last col in line
                                     if (solve_puzzle(board, pieces, pieces_used, 0, y+1, size_row, size_col, sides) == false) {
-                                        pieces_used[ind_try] = false;
+                                        pieces_used[possible_pieces_interseption[ind_try]] = false;
                                     }
                                     else {
                                         return true;
@@ -406,7 +515,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                                 }
                                 else {
                                     if (solve_puzzle(board, pieces, pieces_used, x+1, y, size_row, size_col, sides) == false) {
-                                        pieces_used[ind_try] = false;
+                                        pieces_used[possible_pieces_interseption[ind_try]] = false;
                                     }
                                     else {
                                         return true;
@@ -414,7 +523,7 @@ bool solve_puzzle(puzzle_board& board, puzzle_pieces& pieces, bool* pieces_used,
                                 }
                             }
                         }
-                        rotate_piece_right(pieces, ind_try);
+                        rotate_piece_right(pieces, possible_pieces_interseption[ind_try]);
                     }
                 }
             }

@@ -5,15 +5,17 @@ David Marcelino Mendes Palaio - 2018283864
 Mooshak - sub 1003 (130 pts - Limit Time Exceeded)
 */
 /*
-g++ -std=c++17 -Wall -Wextra -O2 Project1_v2.cpp -lm
+g++ -std=c++17 -Wall -Wextra -O2 Project1_backup_130_pts_15_03_2022.cpp -lm
 */
 
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 #define N_MAX 2500
 #define R_MAX 50
@@ -43,6 +45,9 @@ int main () {
     //input
     std::ios_base::sync_with_stdio(0);
     std::cin.tie(0);
+
+    auto start = high_resolution_clock::now();
+
 
     while (cin >> num_testcases) {
         for (int i = 0; i < num_testcases; i++) {
@@ -109,6 +114,11 @@ int main () {
             pieces.clear();
             board.clear();
         }
+
+        auto stop = high_resolution_clock::now(); 
+        auto duration = duration_cast<microseconds>(stop - start); 
+
+        cout << "input file time: " << duration.count() << endl; 
 
         // size_temp = testcase.size();
     }
