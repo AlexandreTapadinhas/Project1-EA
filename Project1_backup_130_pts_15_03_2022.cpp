@@ -46,7 +46,7 @@ int main () {
     std::ios_base::sync_with_stdio(0);
     std::cin.tie(0);
 
-    auto start = high_resolution_clock::now();
+    //auto start = high_resolution_clock::now();
 
 
     while (cin >> num_testcases) {
@@ -115,10 +115,10 @@ int main () {
             board.clear();
         }
 
-        auto stop = high_resolution_clock::now(); 
+        /*auto stop = high_resolution_clock::now(); 
         auto duration = duration_cast<microseconds>(stop - start); 
 
-        cout << "input file time: " << duration.count() << endl; 
+        cout << "input file time: " << duration.count() << endl;*/
 
         // size_temp = testcase.size();
     }
